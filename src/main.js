@@ -5,6 +5,7 @@ import App from './components/App.vue';
 // import App from './components/App.vue';
 import NewsView from './components/NewsView.vue';
 import UserView from './components/UserView.vue';
+import ItemView from './components/ItemView.vue';
 
 Vue.use(Router);
 
@@ -19,7 +20,10 @@ router.map({
     },
     '/user/:id': {
         component: UserView
-    }
+    },
+    '/item/:id': {
+        component: ItemView
+    },
 });
 
 router.beforeEach(function () {

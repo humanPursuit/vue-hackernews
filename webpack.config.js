@@ -38,6 +38,10 @@ module.exports = {
             },
 
         ]
+    },
+    devServer: {
+        publicPath: '/static/',
+        port: 3000,
     }
 };
 

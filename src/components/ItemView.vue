@@ -14,7 +14,7 @@
             :comment="comment">
             </comment>
       </ul>
-      <p v-show="!comments.length && !isJob">No comments yet.</p>
+      <p v-show="comments && !comments.length && !isJob">No comments yet.</p>
   </div>
 </template>
 

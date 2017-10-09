@@ -1,12 +1,7 @@
 <template>
     <div class="news-view" :class="{ loading: !items.length }">
-        
-        <item 
-        v-for='item in items'
-        :item="item" 
-        :index="$index | formatItemIndex"
-        track-by="id"
-        ></item>
+
+        <item v-for="(item,index) in items" :key="item.id" :item="item" :index="formatItemIndex(index)"></item>
 
         <div class="nav" v-show="items.length > 0">
             <a v-if="page > 1" :href="'#/news/' + (page - 1)">&lt; prev</a>
@@ -57,14 +52,11 @@ export default {
             store.fetchItemsByPage(this.page).then(items => {
                 this.items = items;
             })
-        }
-    },
-
-    filters: {
+        },
         formatItemIndex(index) {
             return (this.page - 1) * store.storiesPageSize + index + 1
         },
-    }
+    },
 }
 </script>
 

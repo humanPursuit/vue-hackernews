@@ -5,11 +5,9 @@
             <a :href="'#/user/' + comment.by">{{comment.by}}</a>
             {{comment.time | fromNow}}
         </div>
-        <p class="comment-content" v-show="open">
-            {{{comment.text}}}
-        </p>
+        <p class="comment-content" v-show="open" v-html="comment.text"></p>
         <ul class="child-comments" v-if="comments.kids" v-show="open">
-            <comment v-for="comment in childComments" :comment="comment"></comment>
+            <comment v-for="comment in childComments" :key="comment.id" :comment="comment"></comment>
         </ul>
     </li>
 </template>

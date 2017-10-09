@@ -1,16 +1,17 @@
-<<template>
+<template>
   <div class="item-view" v-show="item">
       <item :item="item"></item>
       <p class="itemtext" v-if="hasText" v-html="item.text"></p>
       <ul class="poll-options" v-if="pollOptions">
-          <li v-for="option in options">
+          <li v-for="(option, index) in options" :key="index">
               <p>{{option.text}}</p>
               <p class="subtext">{{option.score}} points</p>
           </li>
       </ul>
       <ul class="comments" v-if="comments">
           <comment
-            v-for="comment in comments"
+            v-for="(comment, index) in comments"
+            :key="index"
             :comment="comment">
             </comment>
       </ul>

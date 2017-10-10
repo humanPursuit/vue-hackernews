@@ -1,33 +1,37 @@
 <template>
-    <div class="item">
-        <span class="index">{{index}}.</span>
-        <p>
-            <a :href="href" target="_blank" class="title">{{item.title}}</a>
-            <span class="domain" v-show="showDomain">
-                {{item.url|domain}}
+    <li class="news-item">
+        <span class="score">{{ item.score }}</span>
+        <span class="title">
+            <template v-if="item.url">
+                <a :href="item.url" target="_blank" rel="noopener">{{ item.title }}</a>
+                <span class="host">({{ item.url | host }})</span>
+            </template>
+            <template v-else>
+                <router-link :to="'/item/' + item.id">{{ item.title }}</router-link>
+            </template>
+        </span>
+
+        <span class="meta">
+            <span v-if="item.type !== 'job'" class="by">
+                by
+                <router-link :to="'/user' + item.by">{{ item.by }}</router-link>
             </span>
-        </p>
-        <p class="subtext">
-            <span v-show="showInfo">
-                {{item.score}} points by
-                <a :href="'#/user/' + item.by">{{item.by}}</a>
-            </span>
-            {{item.time| fromNow}} ago
-            <span class="comments-link" v-show="showInfo">
+            <span class="time">{{ item.time | timeAgo }} ago</span>
+            <span v-if="item.type !== 'job'" class="comments-link">
                 |
-                <a :href="'#/item/' + item.id">{{item.descendants}} </a>
+                <router-link :to="'/item/' + item.id">{{ item.descendants }} comments</router-link>
             </span>
-        </p>
-    </div>
+            <span class="label" v-if="item.type !== 'story'">{{ item.type }}</span>
+        </span>
+    </li>
 </template>
 
 <script>
 export default {
-    name: 'Item',
+    name: 'news-item',
 
     props: {
         item: Object,
-        index: Number,
     },
 
     computed: {

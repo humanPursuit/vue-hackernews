@@ -3,7 +3,7 @@
       <item :item="item"></item>
       <p class="itemtext" v-if="hasText" v-html="item.text"></p>
       <ul class="poll-options" v-if="pollOptions">
-          <li v-for="(option, index) in options" :key="index">
+          <li v-for="(option, index) in pollOptions" :key="index">
               <p>{{option.text}}</p>
               <p class="subtext">{{option.score}} points</p>
           </li>

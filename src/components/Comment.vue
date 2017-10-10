@@ -1,13 +1,17 @@
 <template>
-    <li v-show="comment.text">
-        <div class="comhead">
-            <a class="toggle" @click="open = !open">{{ open ? '[-]' : '[+]'}}</a>
-            <a :href="'#/user/' + comment.by">{{comment.by}}</a>
-            {{comment.time | fromNow}}
+    <li v-show="comment" class="comment">
+        <div class="by">
+            <router-link :to="'/user/' + comment.by">{{comment.by}}</router-link>
+            {{ comment.time | timeAgo }} ago
         </div>
-        <p class="comment-content" v-show="open" v-html="comment.text"></p>
-        <ul class="child-comments" v-if="comments.kids" v-show="open">
-            <comment v-for="comment in childComments" :key="comment.id" :comment="comment"></comment>
+        <div class="text" v-html="comment.text"></div>
+        <div class="toggle" :class="{open}" v-if="comment.kids && comment.kids.length">
+            <a @click="open = !open">
+                {{ open ? '[-]' : '[+]' + pluralize(comment.kids.length) + 'collapsed' }}
+            </a>
+        </div>
+        <ul class="comment-children" v-show="open">
+            <comment v-for="id in comment.kids" :key="id" :id="id"></comment>
         </ul>
     </li>
 </template>
@@ -19,52 +23,73 @@ export default {
     name: 'Comment',
 
     props: {
-        comment: Object
+        id: String,
     },
 
     data() {
         return {
-            childComments: [],
             open: true,
         };
     },
 
+    methods: {
+        pluralize: n => n + (n === 1 ? 'reply' : 'replies')
+    },
+
     created() {
-        if (this.comment.kids) {
-            store.fetchItems(this.comment.kids).then(comments => {
-                this.childComments = comments;
-            })
-        }
+        store.fetchItems(this.id).then(comment => {
+            this.comment = comment;
+        })
     }
 }
 </script>
 
 <style lang="less">
 @import "../variables.less";
-.comhead {
-    color: @gray;
-    font-size: 11px;
-    margin-bottom: 8px;
-    a {
-        color: @gray;
-        &:hover {
+.comment-children {
+    .comment-children {
+        margin-left: 1.5em;
+    }
+}
+
+.comment {
+    @text-color: #828282;
+    border-top: 1px solid #eee;
+    position: relative;
+    .by,
+    .text,
+    .toggle {
+        font-size: .9em;
+        margin: 1em 0;
+    }
+    .by {
+        color: @text-color;
+        a {
+            color: @text-color;
             text-decoration: underline;
         }
     }
+    .text {
+        overflow-wrap: break-word;
+        a:hover {
+            color: #ff6600;
+        }
+        pre {
+            white-space: pre-wrap;
+        }
+    }
     .toggle {
-        margin-right: 4px;
+        background-color: #fffbf2;
+        padding: .3em .5em;
+        border-radius: 4px;
+        a {
+            color: @text-color;
+        }
+        &.open {
+            padding: 0;
+            background-color: transparent;
+            margin-bottom: .5em;
+        }
     }
-}
-
-.comment-content {
-    margin: 0 0 16px 24px;
-    word-wrap: break-word;
-    code {
-        white-space: pre-wrap;
-    }
-}
-
-.child-comments {
-    margin: 8px 0 8px 22px;
 }
 </style>

@@ -1,40 +1,31 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import { domain, fromNow } from './filters';
+
+import * as filters from './util/filters';
+import titleMixin from './util/title';
+
 import App from './components/App.vue';
 import NewsView from './components/NewsView.vue';
 // import UserView from './components/UserView.vue';
 // import ItemView from './components/ItemView.vue';
 
-// Vue.use(Router);
+// register all Global filters
+Object.keys(filters).forEach(key => {
+    Vue.filter(key, filters[key]);
+});
 
-Vue.filter('fromNow', fromNow);
-Vue.filter('domain', domain);
-
-var router = new Router();
-
-// router.map({
-//     '/news/:page': {
-//         component: NewsView
-//     },
-//     '/user/:id': {
-//         component: UserView
-//     },
-//     '/item/:id': {
-//         component: ItemView
-//     },
-// });
+Vue.mixin(titleMixin);
 
 var routes = [{
     path: '/news/:page',
     component: NewsView,
-// }, {
-//     path: '/user/:id',
-//     component: UserView,
-// }, {
-//     path: '/item/:id',
-//     component: ItemView,
-    }, {
+    // }, {
+    //     path: '/user/:id',
+    //     component: UserView,
+    // }, {
+    //     path: '/item/:id',
+    //     component: ItemView,
+}, {
     path: '*',
     redirect: '/news/1'
 }];

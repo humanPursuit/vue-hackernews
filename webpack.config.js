@@ -1,13 +1,19 @@
-var webpack = require('webpack');
+const path = requrie('path');
+const webpack = require('webpack');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const FriendlyErrorsPlguin = require('friendly-errors-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-console.log(__dirname)
+const isProd = process.env.NODE_ENV === 'production';
+
 module.exports = {
     entry: './src/main',
     output: {
-        filename: 'build.js',
-        path: __dirname + '/static/',
-        publicPath: __dirname + '/static/',
+        filename: '[name].[chunkhash].js',
+        path: path.resolve(__dirname, '/dist'),
+        publicPath: '/dist/',
     },
+    devtool: isProd ? false : 'cheap-module-source-map',
     module: {
         noParse: /es6-promise\.js/,
         rules: [
@@ -16,18 +22,13 @@ module.exports = {
                 loader: {
                     loader: 'vue-loader',
                     options: {
-                        loaders: {
-                            less: ['vue-style-loader', 'css-loader', {
-                                loader: 'less-loader',
-                                sourceMap: true,
-                            }],
-                        }
+                        extractCSS: process.env.NODE_ENV === 'production',
                     },
                 },
             },
             {
                 test: /\.js$/,
-                exclude: /node_modules|vue\/dist||vue-router\/|vue-hot-reload-api\//,
+                exclude: /node_modules/,
                 loader: {
                     loader: 'babel-loader',
                     options: {
@@ -36,12 +37,31 @@ module.exports = {
                     },
                 },
             },
-
+            {
+                test: /\.(png|jpg|gif|svg)$/,
+                loader: 'url-loader',
+                options: {
+                    limit: 10000,
+                    name: '[name].[ext]?[hash]',
+                },
+            },
+            {
+                test: /\.css$/,
+                use: isProd ? ExtractTextPlugin.extract({
+                    use: 'css-loader?minimize',
+                    fallback: 'vue-style-loader',
+                }) :
+                    ['vue-style-loader', 'css-loader'],
+            }
         ]
     },
     devServer: {
         publicPath: '/static/',
         port: 3000,
+    },
+    performance: {
+        maxEntrypointSize: 300000,
+        hints: isProd ? 'warning' : false,
     }
 };
 
@@ -50,13 +70,44 @@ if (process.env.NODE_ENV === 'production') {
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': '"production"',
         }),
-        // new webpack.optimize.UglifyJsPlugin({
-        //     compress: {
-        //         warnings: false
-        //     }
-        // }),
-        // new webpack.optimize.OccurenceOrderPlugin()
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                warnings: false
+            }
+        }),
+        new webpack.optimize.ModuleConcatenationPlugin(),
+        new ExtractTextPlugin({
+            filename: 'common.[chunkhash].css'
+        })
     ]
 } else {
-    module.exports.devtool = 'source-map';
+    module.exports.plugins = [
+        // strip dev-only code in vue source
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+            'process.env.VUE_ENV': '"client"'
+        }),
+        new FriendlyErrorsPlugin(),
+        // extract vendor chunks for better caching
+        new webpack.optimize.CommonsChunkPlugin({
+            name: 'vendor',
+            minChunks: function (module) {
+                return (
+                    /node_modules/.test(module.context) &&
+                    ~/\.css$/.test(module.request)
+                );
+            }
+        }),
+        // extract webpack runtime & manifest to avoid vendor chunk hash changing
+        // on every build.
+        new webpack.optimize.CommonsChunkPlugin({
+            name: 'manifest',
+        }),
+    ]
 }
+
+module.exports.plugins = module.exports.plugins.concat([
+    new HtmlWebpackPlugin({
+        chunksSortMode: 'dependency'
+    })
+]);

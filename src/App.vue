@@ -10,13 +10,15 @@
             </h1>
             <span class="source">
                 Built with
-                <a href="http://vuejs.org" target="_blank">Vue.js</a> |
-                <a href="https://github.com/vuejs/vue-hackernews" target="_blank">Source</a>
+                <a href="http://vuejs.org" target="_blank" rel="noopener">Vue.js</a> |
+                <a href="https://github.com/vuejs/vue-hackernews" target="_blank" rel="noopener">Source</a>
             </span>
         </div>
         <!-- main view -->
-        <router-view class="view" keep-alive transition transition-mode="out-in">
-        </router-view>
+        <transition name='fade' mode='out-in'>
+            <router-view class="view">
+            </router-view>
+        </transition>
     </div>
 </template>
 
@@ -97,6 +99,16 @@ a {
     &.v-leave-to {
         opacity: 0;
     }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: all .2s ease;
+}
+
+.fade-enter,
+.fade-leave-active {
+    opacity: 0;
 }
 
 @media screen and (max-width: 700px) {

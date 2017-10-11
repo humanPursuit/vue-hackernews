@@ -1,26 +1,6 @@
-var Firebase = require('firebase/app');
-var Database = require('firebase/database');
-var EventEmitter = require('events').EventEmitter;
-var Promise = require('es6-promise').Promise;
+import * as API from '../api';
 
-var config = {
-    databaseURL: 'https://hacker-news.firebaseio.com',
-};
-Firebase.initializeApp(config);
-var api = Firebase.database().ref('/v0');
-var cache = Object.create(null);
-var store = new EventEmitter();
-var storiesPageSize = store.storiesPageSize = 30;
-
-var topStoryIds = [];
-/**
- * Subscribe to real time updates of top 100 stories,
- * cache ids locally.
- */
-api.child('topstories').on('value', function (snapshot) {
-    topStoryIds = snapshot.val();
-    store.emit('topstories-updated');
-});
+const storiesPageSize = store.storiesPageSize = 30;
 
 /**
  * Fetch item data with given id.
@@ -29,16 +9,7 @@ api.child('topstories').on('value', function (snapshot) {
  * @return {Promise}
  */
 store.fetchItem = function (id) {
-    return new Promise(function (resolve, reject) {
-        if (cache[id]) {
-            resolve(cache[id])
-        } else {
-            api.child('item/' + id).once('value', function (snapshot) {
-                cache[id] = snapshot.val();
-                resolve(cache[id]);
-            }, reject)
-        }
-    });
+    return API.fetchItem(id);
 };
 
 /**
@@ -48,11 +19,7 @@ store.fetchItem = function (id) {
  * @return {Promise}
  */
 store.fetchItems = function (ids) {
-    if (!ids || !ids.length) {
-        return Promise.resolve([]);
-    } else {
-        return Promise.all(ids.map(function (id) { return store.fetchItem(id); }));
-    }
+    return Promise.all(ids.map(id => store.fetchItem(id)));
 };
 
 /**

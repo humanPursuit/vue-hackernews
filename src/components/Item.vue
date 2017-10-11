@@ -33,50 +33,35 @@ export default {
     props: {
         item: Object,
     },
-
-    computed: {
-        href() {
-            return this.item.url || ('#/item/' + this.item.id)
-        },
-        showInfo() {
-            return this.item.type === 'story' || this.item.type === 'pool'
-        },
-        showDomain() {
-            return this.item.type === 'story'
-        }
-    }
 }
 </script>
 
 <style lang='less'>
-@import '../variables.less';
-.item {
-    padding: 2px 0 2px 40px;
+.news-item {
+    background-color: #fff;
+    padding: 20px 30px 20px 80px;
+    border-bottom: 1px solid #eee;
     position: relative;
-
-    transition: background-color .2s ease;
-    p {
-        margin: 2px 0;
-    }
-    .title:visited {
-        color: @gray;
-    }
-    .index {
-        color: @gray;
-        position: absoulte;
-        width: 30px;
-        text-align: right;
+    line-height: 20px;
+    .score {
+        color: #ff6600;
+        font-size: 1.1em;
+        font-weight: 700;
+        position: absolute;
+        top: 50%;
         left: 0;
-        top: 4px;
+        width: 80px;
+        text-align: center;
+        margin-top: -10px;
     }
-    .domain,
-    .subtext {
-        font: 14px;
-        color: @gray;
+    .meta, .host {
+        font-size: .85em;
+        color: #828282;
         a {
-            color: @gray;
+            color: #828282;
+            text-decoration: underline;
             &:hover {
-                text-decoration: underline;
+                color: #ff6600;
             }
         }
     }

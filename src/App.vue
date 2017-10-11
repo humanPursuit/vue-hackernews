@@ -23,7 +23,7 @@
 </template>
 
 <style lang='less'>
-@import '../variables.less';
+@import './variables.less';
 
 html,
 body {

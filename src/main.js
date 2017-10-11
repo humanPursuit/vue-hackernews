@@ -4,10 +4,9 @@ import VueRouter from 'vue-router';
 import * as filters from './util/filters';
 import titleMixin from './util/title';
 
-import App from './components/App.vue';
-import NewsView from './components/NewsView.vue';
-// import UserView from './components/UserView.vue';
-// import ItemView from './components/ItemView.vue';
+import App from './App.vue';
+// import { createStore } from './store'
+import { createRouter } from './router'
 
 // register all Global filters
 Object.keys(filters).forEach(key => {
@@ -16,30 +15,24 @@ Object.keys(filters).forEach(key => {
 
 Vue.mixin(titleMixin);
 
-var routes = [{
-    path: '/news/:page',
-    component: NewsView,
-    // }, {
-    //     path: '/user/:id',
-    //     component: UserView,
-    // }, {
-    //     path: '/item/:id',
-    //     component: ItemView,
-}, {
-    path: '*',
-    redirect: '/news/1'
-}];
+function createApp() {
+    // const store = createStore();
+    const router = createRouter();
 
-var router = new VueRouter({
-    routes,
-});
+    const app = new Vue({
+        router,
+        store,
+        render: h => h(App),
+    });
 
-router.beforeEach(function () {
-    window.scrollTo(0, 0)
-});
+    return { app, router, store };
+}
 
 
-// router.start(App, '#app')
-const app = new Vue({
-    router
-}).$mount('#app');
+import ProgressBar from './components/ProgressBar.vue';
+const bar = Vue.prototype.$bar = new Vue(ProgressBar).$mount();
+document.body.appendChild(bar.$el);
+
+const { app, router } = createApp();
+
+app.$mount('#app');

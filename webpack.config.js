@@ -1,7 +1,7 @@
-const path = requrie('path');
+const path = require('path');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const FriendlyErrorsPlguin = require('friendly-errors-webpack-plugin');
+const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const isProd = process.env.NODE_ENV === 'production';
@@ -10,8 +10,13 @@ module.exports = {
     entry: './src/main',
     output: {
         filename: '[name].[chunkhash].js',
-        path: path.resolve(__dirname, '/dist'),
-        publicPath: '/dist/',
+        path: path.resolve(__dirname, 'dist/'),
+        publicPath: 'dist/',
+    },
+    resolve: {
+        alias: {
+            'create-api': './create-api-client.js'
+        }
     },
     devtool: isProd ? false : 'cheap-module-source-map',
     module: {
@@ -56,7 +61,8 @@ module.exports = {
         ]
     },
     devServer: {
-        publicPath: '/static/',
+        contentBase: path.resolve(__dirname, 'dist'),
+        publicPath: '/dist/',
         port: 3000,
     },
     performance: {

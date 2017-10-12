@@ -9,7 +9,7 @@ const createListView = id => () => System.import('../views/CreateListView').then
 
 export function createRouter() {
     return new Router({
-        mode: 'history',
+        mode: 'hash',
         fallback: false,
         scrollBehavior: () => ({ y: 0 }),
         routes: [

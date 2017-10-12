@@ -1,6 +1,24 @@
 import * as API from '../api';
 
-const storiesPageSize = store.storiesPageSize = 30;
+const storiesPageSize = 30;
+
+const store = {
+    storiesPageSize: storiesPageSize,
+    type: null,
+    list: {
+        /* [id:number] */
+        news: [],
+    }
+};
+
+
+store.fetchStoriesIds = function (type) {
+    store.type = type;
+    return API.fetchIdsByType(type)
+        .then(ids => {
+            store.list[type] = ids;
+        });
+}
 
 /**
  * Fetch item data with given id.
@@ -30,9 +48,10 @@ store.fetchItems = function (ids) {
  */
 store.fetchItemsByPage = function (page) {
     var start = (page - 1) * storiesPageSize;
+    var list = this.list[this.type];
     var end = page * storiesPageSize;
-    var ids = topStoryIds.slice(start, end);
-    return store.fetchItems(ids);
+    var ids = list.slice(start, end);
+    return API.fetchItems(ids);
 };
 
 /**

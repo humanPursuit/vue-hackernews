@@ -8,7 +8,7 @@
         <transition :name="transition">
             <div class="newslist" :key="displayedPage" v-if="displayedPage > 0">
                 <transition-group tag="ul" name="item">
-                    <item v-for="item in displayedItem" :key="item.id" :item="item">
+                    <item v-for="item in displayedItems" :key="item.id" :item="item">
                     </item>
                 </transition-group>
             </div>
@@ -18,7 +18,7 @@
 
 <script>
 import Item from '../components/Item.vue';
-import { watchList, fetchItems } from '../api';
+import store from '../store';
 
 export default {
     name: 'item-list',
@@ -32,7 +32,7 @@ export default {
         return {
             transition: 'slide-right',
             displayedPage: Number(this.$route.params.page) || 1,
-            dispalyedItems: [],
+            displayedItems: [],
         }
     },
     computed: {
@@ -40,8 +40,8 @@ export default {
             return Number(this.$route.params.page) || 1;
         },
         maxPage() {
-            // const { itemsPerPage, lists } = ;
-            // return Math.ceil(lists[this.type].length / 20);
+            const { storiesPageSize, list } = store;
+            return Math.ceil(list[this.type].length / storiesPageSize);
             return 10;
         },
         hasMore() {
@@ -53,27 +53,27 @@ export default {
             this.loadItems(this.page);
         }
 
-        this.unwatchList = watchList(this.type, ids => {
-            fetchItems(ids).then((data) => {
-                debugger;
+        store.fetchItemsByPage(this.page)
+            .then(data => {
+                this.displayedItems = data;
             })
-        })
     },
     methods: {
         loadItems(to = this.page, from = -1) {
             this.$bar.start();
 
-
-            if (this.page < 0 || this.page > this.maxPage) {
-                this.$router.replace(`/${this.type}/1`)
-                return
-            }
-            this.transition = from === -1
-                ? null
-                : to > from ? 'slide-left' : 'slide-right'
-            this.displayedPage = to
-            this.displayedItems = this.$store.getters.activeItems
-            this.$bar.finish()
+            store.fetchStoriesIds(this.type)
+                .then(() => {
+                    if (this.page < 0 || this.page > this.maxPage) {
+                        this.$router.replace(`/${this.type}/1`)
+                        return
+                    }
+                    this.transition = from === -1
+                        ? null
+                        : to > from ? 'slide-left' : 'slide-right'
+                    this.displayedPage = to
+                    this.$bar.finish()
+                })
         }
     }
 }

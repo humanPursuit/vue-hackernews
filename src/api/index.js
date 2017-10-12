@@ -2,7 +2,7 @@ import Firebase from 'firebase/app';
 import 'firebase/database';
 import { Promise } from 'es6-promise';
 
-function createAPI({ Config, version }) {
+function createAPI({ config, version }) {
     Firebase.initializeApp(config);
     return Firebase.database().ref(version);
 }

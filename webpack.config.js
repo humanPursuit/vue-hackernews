@@ -11,14 +11,14 @@ module.exports = {
     output: {
         filename: '[name].[chunkhash].js',
         path: path.resolve(__dirname, 'dist/'),
-        publicPath: 'dist/',
+        publicPath: '/',
     },
     resolve: {
         alias: {
             'create-api': './create-api-client.js'
         }
     },
-    devtool: isProd ? false : 'cheap-module-source-map',
+    devtool: isProd ? false : 'source-map',
     module: {
         noParse: /es6-promise\.js/,
         rules: [
@@ -114,6 +114,9 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports.plugins = module.exports.plugins.concat([
     new HtmlWebpackPlugin({
-        chunksSortMode: 'dependency'
+        chunksSortMode: 'dependency',
+        template: 'index.html',
+        filename: path.resolve(__dirname, 'dist/index.html'),
+        inject: true,
     })
 ]);

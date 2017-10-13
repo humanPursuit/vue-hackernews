@@ -13,10 +13,10 @@ export function createRouter() {
         fallback: false,
         scrollBehavior: () => ({ y: 0 }),
         routes: [
-            { path: '/news/:page(\\d+)?', component: createListView('news') },
+            { path: '/new/:page(\\d+)?', component: createListView('new') },
             // { path: '/item/:id(\\d+)?', component: ItemView },
             // { path: '/user/:id', component: UserView },
-            { path: '/', redirect: 'news' },
+            { path: '/', redirect: 'new' },
         ]
     });
 }

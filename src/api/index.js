@@ -44,10 +44,32 @@ function fetch(child) {
     }
 }
 
+const pageSize = 30;
+
+export const store = {
+    pageSize,
+    type: null,
+    list: {
+        /* [id:number] */
+        new: [],
+    }
+};
+
 export function fetchIdsByType(type) {
+    store.type = type;
     return api.cachedIds && api.cachedIds[type] ?
         Promise.resolve(api.cachedIds[type]) :
-        fetch(`${type}stories`);
+        fetch(`${type}stories`).then(data => {
+            store.list[type] = data;
+        });
+}
+
+export function fetchItemsByPage(page) {
+    var start = (page - 1) * pageSize;
+    var list = store.list[store.type];
+    var end = page * pageSize;
+    var ids = list.slice(start, end);
+    return fetchItems(ids);
 }
 
 export function fetchItem(id) {
@@ -77,3 +99,5 @@ export function watchList(type, cb) {
         ref.off('value', handler);
     }
 }
+
+

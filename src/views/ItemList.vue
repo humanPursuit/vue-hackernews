@@ -18,7 +18,8 @@
 
 <script>
 import Item from '../components/Item.vue';
-import store from '../store';
+import * as API from '../api';
+import { store } from '../api';
 
 export default {
     name: 'item-list',
@@ -40,9 +41,8 @@ export default {
             return Number(this.$route.params.page) || 1;
         },
         maxPage() {
-            const { storiesPageSize, list } = store;
-            return Math.ceil(list[this.type].length / storiesPageSize);
-            return 10;
+            const { pageSize, list } = store;
+            return Math.ceil(list[this.type].length / pageSize);
         },
         hasMore() {
             return this.page < this.maxPage;
@@ -53,16 +53,21 @@ export default {
             this.loadItems(this.page);
         }
 
-        store.fetchItemsByPage(this.page)
+        API.fetchItemsByPage(this.page)
             .then(data => {
                 this.displayedItems = data;
             })
+    },
+    watch: {
+        page(to, from) {
+            this.loadItems(to, from);
+        }
     },
     methods: {
         loadItems(to = this.page, from = -1) {
             this.$bar.start();
 
-            store.fetchStoriesIds(this.type)
+            API.fetchIdsByType(this.type)
                 .then(() => {
                     if (this.page < 0 || this.page > this.maxPage) {
                         this.$router.replace(`/${this.type}/1`)

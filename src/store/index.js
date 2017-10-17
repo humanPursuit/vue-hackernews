@@ -6,14 +6,25 @@ const store = {
     storiesPageSize: storiesPageSize,
     type: null,
     list: {
-        /* [id:number] */
-        news: [],
-    }
+        /* [type]: [id:number] */
+    },
 };
+
+if (API.api.onServer) {
+    warnCache();
+}
+
+function warmCache() {
+    fetchItems((api.cachedIds.top || []).slice(0, 30))
+    setTimeout(warmCache, 1000 * 60 * 15);
+}
 
 
 store.fetchStoriesIds = function (type) {
     store.type = type;
+    if (store.list[type] === undefined) {
+        store.list[type] = [];
+    }
     return API.fetchIdsByType(type)
         .then(ids => {
             store.list[type] = ids;
@@ -54,19 +65,4 @@ store.fetchItemsByPage = function (page) {
     return API.fetchItems(ids);
 };
 
-/**
- * Fetch a user data with given id.
- * 
- * @param {Number} id
- * @return {Promise}
- */
-store.fetchUser = function (id) {
-    return new Promise(function (resolve, reject) {
-        api.child('/user/' + id).once('value', function (snapshot) {
-            var user = snapshot.val();
-            resolve(user);
-        }, reject)
-    });
-};
-
-module.exports = store;
+export default store;

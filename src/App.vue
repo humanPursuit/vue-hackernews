@@ -1,19 +1,19 @@
 <template>
     <div id="wrapper">
         <!-- header -->
-        <div id="header">
-            <a id="yc" href="http://www.ycombinator.com">
-                <img src="https://news.ycombinator.com/y18.gif">
-            </a>
-            <h1>
-                <a href="#/">Hacker News</a>
-            </h1>
-            <span class="source">
-                Built with
-                <a href="http://vuejs.org" target="_blank" rel="noopener">Vue.js</a> |
-                <a href="https://github.com/vuejs/vue-hackernews" target="_blank" rel="noopener">Source</a>
-            </span>
-        </div>
+        <header class="header">
+            <nav class="inner">
+                <router-link to='/' exact>
+                    <img src="https://news.ycombinator.com/y18.gif">
+                </router-link>
+                <router-link to="/top">Top</router-link>
+                <router-link to="/new">New</router-link>
+                <router-link to="/show">Show</router-link>
+                <router-link to="/ask">Ask</router-link>
+                <router-link to="/job">Jobs</router-link>
+                <a href="https://github.com/vuejs/vue-hackernews-2.0" class="github" target="_blank" rel="noopener">Built with Vue.js</a>
+            </nav>
+        </header>
         <!-- main view -->
         <transition name='fade' mode='out-in'>
             <router-view class="view">
@@ -27,9 +27,16 @@
 
 html,
 body {
-    font-family: Verdana;
-    font-size: 13px;
     height: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    font-size: 15px;
+    background-color: #f2f3f5;
+    margin: 0;
+    padding-top: 55px;
+    overflow-y: scroll;
 }
 
 ul {
@@ -44,61 +51,54 @@ a {
     text-decoration: none;
 }
 
-#wrapper {
-    background-color: @bg;
-    position: relative;
-    width: 85%;
-    min-height: 80px;
-    margin: 0 auto;
-}
-
-#header {
+.header {
     background-color: #f60;
-    height: 24px;
-    position: relative;
-    h1 {
-        font-weight: bold;
-        font-size: 13px;
+    height: 55px;
+    position: fixed;
+    z-index: 999;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    .inner {
+        max-width: 800px;
+        box-sizing: border-box;
+        margin: 0 auto;
+        padding: 15px 5px;
+    }
+
+    a {
+        color: rgba(255, 255, 255, .8);
+        line-height: 24px;
+        transition: color .15s ease;
         display: inline-block;
         vertical-align: middle;
-        margin: 0;
-    }
-    .source {
-        color: #fff;
-        font-size: 11px;
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        a {
+        font-weight: 300;
+        letter-spacing: .075em;
+        margin-right: 1.8em;
+        &:hover {
             color: #fff;
-            &:hover {
-                text-decoration: underline;
-            }
+        }
+        &.router-link-active {
+            color: #fff;
+            font-weight: 400;
+        }
+        &:nth-child(6) {
+            margin-right: 0;
         }
     }
-}
-
-#yc {
-    border: 1px solid #fff;
-    margin: 2px;
-    display: inline-block;
-    vertical-align: middle;
-    img {
-        vertical-align: middle;
+    .github {
+        color: #fff;
+        font-size: .9em;
+        margin: 0;
+        float: right;
     }
 }
 
 .view {
-    position: absolute;
-    background-color: @bg;
-    width: 100%;
-    transition: opacity .2 ease;
-    box-sizing: border-box;
-    padding: 8px 20px;
-    &.v-enter,
-    &.v-leave-to {
-        opacity: 0;
-    }
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
 }
 
 .fade-enter-active,

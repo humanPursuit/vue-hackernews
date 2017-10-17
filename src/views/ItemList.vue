@@ -6,7 +6,7 @@
             <router-link v-if="hasMore" :to="'/' + type + '/' + (page + 1)">more &gt;</router-link>
         </div>
         <transition :name="transition">
-            <div class="newslist" :key="displayedPage" v-if="displayedPage > 0">
+            <div class="news-list" :key="displayedPage" v-if="displayedPage > 0">
                 <transition-group tag="ul" name="item">
                     <item v-for="item in displayedItems" :key="item.id" :item="item">
                     </item>
@@ -18,8 +18,8 @@
 
 <script>
 import Item from '../components/Item.vue';
-import * as API from '../api';
-import { store } from '../api';
+import store from '../store';
+import { watchList } from '../api';
 
 export default {
     name: 'item-list',
@@ -40,9 +40,15 @@ export default {
         page() {
             return Number(this.$route.params.page) || 1;
         },
-        maxPage() {
-            const { pageSize, list } = store;
-            return Math.ceil(list[this.type].length / pageSize);
+        maxPage: {
+            get() {
+                const { storiesPageSize, list } = store;
+                return Math.ceil(list[this.type].length / storiesPageSize);
+            },
+            set(ids) {
+                const { storiesPageSize } = store;
+                return ids.length / storiesPageSize;
+            },
         },
         hasMore() {
             return this.page < this.maxPage;
@@ -53,10 +59,13 @@ export default {
             this.loadItems(this.page);
         }
 
-        API.fetchItemsByPage(this.page)
-            .then(data => {
-                this.displayedItems = data;
-            })
+        this.unwatchList = watchList(this.type, (ids) => {
+            // update store list and type
+            store.list[this.type] = ids || [];
+            store.type = this.type;
+            // fetch items
+            this.fetchPageItems();
+        });
     },
     watch: {
         page(to, from) {
@@ -67,7 +76,7 @@ export default {
         loadItems(to = this.page, from = -1) {
             this.$bar.start();
 
-            API.fetchIdsByType(this.type)
+            store.fetchStoriesIds(this.type)
                 .then(() => {
                     if (this.page < 0 || this.page > this.maxPage) {
                         this.$router.replace(`/${this.type}/1`)
@@ -76,9 +85,16 @@ export default {
                     this.transition = from === -1
                         ? null
                         : to > from ? 'slide-left' : 'slide-right'
-                    this.displayedPage = to
-                    this.$bar.finish()
+                    this.displayedPage = to;
+                    this.fetchPageItems();
+                    this.$bar.finish();
                 })
+        },
+        fetchPageItems(page = this.page) {
+            store.fetchItemsByPage(this.page)
+                .then(items => {
+                    this.displayedItems = items;
+                });
         }
     }
 }
@@ -113,10 +129,10 @@ export default {
 }
 
 .news-list {
-    position: absolute;
-    margin: 30px 0;
-    width: 100%;
-    transition: all .5s cubic-bezier(.55, 0, .1, 1);
+    max-width: 800px;
+    margin: 30px auto;
+    position: relative;
+    transition: all .5s cubic-bezier(.55,0,.1,1);
     ul {
         list-style-type: none;
         padding: 0;

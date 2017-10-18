@@ -1,58 +1,73 @@
 <template>
-  <div class="item-view" v-show="item">
-      <item :item="item"></item>
-      <p class="itemtext" v-if="hasText" v-html="item.text"></p>
-      <ul class="poll-options" v-if="pollOptions">
-          <li v-for="(option, index) in pollOptions" :key="index">
-              <p>{{option.text}}</p>
-              <p class="subtext">{{option.score}} points</p>
-          </li>
-      </ul>
-      <ul class="comments" v-if="comments">
-          <comment
-            v-for="(comment, index) in comments"
-            :key="index"
-            :comment="comment">
-            </comment>
-      </ul>
-      <p v-show="comments && !comments.length && !isJob">No comments yet.</p>
-  </div>
+    <div class="item-view" v-if="item">
+        <template v-if="item">
+            <div class="item-view-header">
+                <a :href="item.url" target="_blank">
+                    <h1>{{ item.title }}</h1>
+                </a>
+                <span v-if="item.url" class="host">{{ item.host | host }}</span>
+                <p class="meta">
+                    {{item.score}} points | by
+                    <router-link :to="'/user/' + item.by">{{ item.by }}</router-link>
+                    {{ item.time | timeAgo }} ago
+                </p>
+            </div>
+            <div class="item-view-comments">
+                <p class="item-view-comments-header">
+                    {{ item.kids ? item.descendants + ' comments' : 'No comments yet.' }}
+                </p>
+                <spinner :show="loading"></spinner>
+                <ul v-if="!loading" class="comment-children">
+                    <comment v-for="id in item.kids" :key="id" :id="id"></comment>
+                </ul>
+            </div>
+        </template>
+    </div>
 </template>
 
 <script>
-import store from '../store';
-import Item from './Item.vue';
-import Comment from './Comment.vue';
+import Spinner from '../components/Spinner.vue';
+import Comment from '../components/Comment.vue';
+
+import * as API from '../api';
+
+const fetchComments = (store, item, updateFn) => {
+    if (item && item.kids) {
+        const now = Date.now();
+        const ids = item.kids.filter(id => {
+            const _item = store[id];
+            if (!item) return true;
+            if (now - _item.__lastUpdated > 1000 * 60 * 3) return true;
+            return false;
+        });
+        if (ids.length) {
+            return API.fetchItems(item.kids)
+                .then(items => {
+                    items.forEach(item => {
+                        updateFn(item);
+                    });
+                })
+                .then(() => Promise.all(item.kids.map(id => fetchComments(store, id))))
+        } else {
+            return Promise.resolve();
+        }
+
+    }
+}
 
 export default {
     name: 'ItemView',
 
     components: {
-        Item,
+        Spinner,
         Comment,
     },
 
     data() {
         return {
-            item: {},
-            comments: [],
-            pollOptions: null,
+            items: {}, // local store
+            loading: false,
         };
-    },
-
-    route: {
-        data({ to }) {
-            return store.fetchItem(to.params.id).then(item => {
-                document.title = item.title + ' | Vue.js HN Clone';
-                return {
-                    item,
-                    comments: store.fetchItem(item.kids),
-                    pollOptions: item.type === 'poll'
-                        ? store.fetchItems(item.parts)
-                        : null
-                };
-            });
-        }
     },
 
     computed: {
@@ -63,42 +78,71 @@ export default {
         hasText() {
             return this.item.hasOwnProperty('text');
         }
+    },
+
+    beforeMount() {
+        this.fetchComments();
+    },
+
+    watch: {
+        item: 'fetchComments',
+    },
+
+    methods: {
+        fetchComments() {
+            if (!this.item || !this.item.kids) return;
+
+            this.loading = true;
+
+            fetchComments(this.items, this.item, (item) => {
+                this.items[item.id] = item;
+            });
+        }
     }
 }
 </script>
 
 <style lang="less">
-@import '../variables.less';
+.item-view-header {
+    background-color: #fff;
+    padding: 1.8em 2em 1em;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+    h1 {
+        display: inline;
+        font-size: 1.5em;
+        margin: 0;
+        margin-right: 1.5em;
+    }
+    .host,
+    .meta,
+    .meta a {
+        color: #828282;
+    }
+    .meta a {
+        text-decoration: underline;
+    }
+}
 
-.item-view {
-    .item {
-        padding-left: 0;
-        margin-bottom: 30px;
-        .index {
-            display: none;
-        }
+.item-view-comments {
+    background: #fff;
+    margin-top: 10px;
+    padding: 0 2em .5em;
+}
+
+.item-view-comments-header {
+    margin: 0;
+    font-size: 1.1em;
+    padding: 1em 0;
+    position: relative;
+    .spinner {
+        display: inline-block;
+        margin: -15px 0;
     }
-    .poll-options {
-        margin-left: 30px;
-        margin-bottom: 40px;
-        li {
-            margin: 12px 0;
-        }
-        p {
-            margin: 8px 0;
-        }
-        .subtext {
-            color: @gray;
-            font-size: 11px;
-        }
-        .itemtext {
-            color: @gray;
-            margin-top: 0;
-            margin-bottom: 30px;
-            p {
-                margin: 10px 0;
-            }
-        }
-    }
+}
+
+.comment-children {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
 }
 </style>

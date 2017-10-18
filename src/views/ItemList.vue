@@ -2,8 +2,10 @@
     <div class="news-view">
         <div class="news-list-nav">
             <router-link v-if="page > 1" :to="'/' + type + '/' + (page - 1)">&lt; prev</router-link>
+            <a v-else class="disabled">&lt; prev</a>
             <span>{{page}} / {{maxPage}}</span>
             <router-link v-if="hasMore" :to="'/' + type + '/' + (page + 1)">more &gt;</router-link>
+            <a v-else class="disabled">more &gt;</a>
         </div>
         <transition :name="transition">
             <div class="news-list" :key="displayedPage" v-if="displayedPage > 0">
@@ -18,8 +20,9 @@
 
 <script>
 import Item from '../components/Item.vue';
-import store from '../store';
-import { watchList } from '../api';
+import * as API from '../api';
+
+const storiesPageSize = 30;
 
 export default {
     name: 'item-list',
@@ -32,23 +35,17 @@ export default {
     data() {
         return {
             transition: 'slide-right',
-            displayedPage: Number(this.$route.params.page) || 1,
+            list: [], /* [id:number]*/
             displayedItems: [],
+            displayedPage: Number(this.$route.params.page) || 1,
         }
     },
     computed: {
         page() {
             return Number(this.$route.params.page) || 1;
         },
-        maxPage: {
-            get() {
-                const { storiesPageSize, list } = store;
-                return Math.ceil(list[this.type].length / storiesPageSize);
-            },
-            set(ids) {
-                const { storiesPageSize } = store;
-                return ids.length / storiesPageSize;
-            },
+        maxPage() {
+            return Math.ceil(this.list.length / storiesPageSize);
         },
         hasMore() {
             return this.page < this.maxPage;
@@ -59,10 +56,9 @@ export default {
             this.loadItems(this.page);
         }
 
-        this.unwatchList = watchList(this.type, (ids) => {
+        this.unwatchList = API.watchList(this.type, (ids) => {
             // update store list and type
-            store.list[this.type] = ids || [];
-            store.type = this.type;
+            this.list = ids || [];
             // fetch items
             this.fetchPageItems();
         });
@@ -76,22 +72,32 @@ export default {
         loadItems(to = this.page, from = -1) {
             this.$bar.start();
 
-            store.fetchStoriesIds(this.type)
+            API.fetchIdsByType(this.type)
+                .then(ids => {
+                    // update id list
+                    this.list = ids;
+                })
                 .then(() => {
                     if (this.page < 0 || this.page > this.maxPage) {
                         this.$router.replace(`/${this.type}/1`)
                         return
                     }
+                    return this.fetchPageItems();
+                })
+                .then(() => {
                     this.transition = from === -1
                         ? null
-                        : to > from ? 'slide-left' : 'slide-right'
+                        : to > from ? 'slide-left' : 'slide-right';
                     this.displayedPage = to;
-                    this.fetchPageItems();
                     this.$bar.finish();
                 })
         },
-        fetchPageItems(page = this.page) {
-            store.fetchItemsByPage(this.page)
+        fetchPageItems() {
+            const start = storiesPageSize * (this.page - 1);
+            const end = storiesPageSize * this.page - 1;
+            const ids = this.list.slice(start, end);
+
+            return API.fetchItems(ids)
                 .then(items => {
                     this.displayedItems = items;
                 });
@@ -132,7 +138,7 @@ export default {
     max-width: 800px;
     margin: 30px auto;
     position: relative;
-    transition: all .5s cubic-bezier(.55,0,.1,1);
+    transition: all .5s cubic-bezier(.55, 0, .1, 1);
     ul {
         list-style-type: none;
         padding: 0;

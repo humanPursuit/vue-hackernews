@@ -1,5 +1,5 @@
 <template>
-    <li v-show="comment" class="comment">
+    <li v-if="comment" class="comment">
         <div class="by">
             <router-link :to="'/user/' + comment.by">{{comment.by}}</router-link>
             {{ comment.time | timeAgo }} ago
@@ -17,18 +17,19 @@
 </template>
 
 <script>
-import store from '../store';
+import * as API from '../api';
 
 export default {
     name: 'Comment',
 
     props: {
-        id: String,
+        id: Number,
     },
 
     data() {
         return {
             open: true,
+            comment: {},
         };
     },
 
@@ -36,16 +37,15 @@ export default {
         pluralize: n => n + (n === 1 ? 'reply' : 'replies')
     },
 
-    created() {
-        store.fetchItems(this.id).then(comment => {
+    beforeMount() {
+        API.fetchItem(this.id).then(comment => {
             this.comment = comment;
-        })
+        });
     }
 }
 </script>
 
 <style lang="less">
-@import "../variables.less";
 .comment-children {
     .comment-children {
         margin-left: 1.5em;

@@ -9,7 +9,7 @@ function createAPI({ config, version }) {
 
 const logRequests = !!process.env.DEBUG_API;
 
-export const api = createAPI({
+const api = createAPI({
     version: '/v0',
     config: {
         databaseURL: 'https://hacker-news.firebaseio.com',

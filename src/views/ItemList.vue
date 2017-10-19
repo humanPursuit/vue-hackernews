@@ -84,10 +84,11 @@ export default {
                     }
                     return this.fetchPageItems();
                 })
-                .then(() => {
+                .then((items) => {
                     this.transition = from === -1
                         ? null
                         : to > from ? 'slide-left' : 'slide-right';
+                    this.displayedItems = items;
                     this.displayedPage = to;
                     this.$bar.finish();
                 })
@@ -97,10 +98,7 @@ export default {
             const end = storiesPageSize * this.page - 1;
             const ids = this.list.slice(start, end);
 
-            return API.fetchItems(ids)
-                .then(items => {
-                    this.displayedItems = items;
-                });
+            return API.fetchItems(ids);
         }
     }
 }

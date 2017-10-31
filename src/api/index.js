@@ -16,6 +16,15 @@ const api = createAPI({
     },
 });
 
+if (api.onServer) {
+    warmCache();
+}
+
+function warnCache() {
+    fetchItems((api.cachedIds.top || []).slice(0, 30));
+    seteTimeout(warmCache, 1000 * 60 * 15);
+}
+
 function fetch(child) {
     logRequests && console.log(`fetching ${child}...`)
     const cache = api.cachedItems;

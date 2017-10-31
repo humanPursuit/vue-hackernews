@@ -63,6 +63,7 @@ export default {
             this.fetchPageItems();
         });
     },
+
     watch: {
         page(to, from) {
             this.loadItems(to, from);
@@ -77,14 +78,12 @@ export default {
                     // update id list
                     this.list = ids;
                 })
-                .then(() => {
+                .then(() => this.fetchPageItems())
+                .then((items) => {
                     if (this.page < 0 || this.page > this.maxPage) {
                         this.$router.replace(`/${this.type}/1`)
                         return
                     }
-                    return this.fetchPageItems();
-                })
-                .then((items) => {
                     this.transition = from === -1
                         ? null
                         : to > from ? 'slide-left' : 'slide-right';
@@ -99,7 +98,10 @@ export default {
             const ids = this.list.slice(start, end);
 
             return API.fetchItems(ids);
-        }
+        },
+        beforeEnter() {
+            console.log('22222');
+        },
     }
 }
 </script>

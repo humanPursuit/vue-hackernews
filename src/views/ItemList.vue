@@ -19,160 +19,154 @@
 </template>
 
 <script>
-import Item from '../components/Item.vue';
-import * as API from '../api';
+import Item from "../components/Item.vue";
+import * as API from "../api";
 
 const storiesPageSize = 30;
 
 export default {
-    name: 'item-list',
-    components: {
-        Item,
+  name: "item-list",
+  components: {
+    Item
+  },
+  props: {
+    type: String
+  },
+  data() {
+    return {
+      transition: "slide-right",
+      displayedItems: this.$store.getters.activeItems,
+      displayedPage: Number(this.$route.params.page) || 1
+    };
+  },
+  computed: {
+    page() {
+      return Number(this.$route.params.page) || 1;
     },
-    props: {
-        type: String,
+    maxPage() {
+      const { itemPerPage, lists } = this.$store.state;
+      return Math.ceil(lists[this.type] / itemPerPage);
     },
-    data() {
-        return {
-            transition: 'slide-right',
-            list: [], /* [id:number]*/
-            displayedItems: [],
-            displayedPage: Number(this.$route.params.page) || 1,
-        }
-    },
-    computed: {
-        page() {
-            return Number(this.$route.params.page) || 1;
-        },
-        maxPage() {
-            return Math.ceil(this.list.length / storiesPageSize);
-        },
-        hasMore() {
-            return this.page < this.maxPage;
-        }
-    },
-    beforeMount() {
-        if (this.$root._isMounted) {
-            this.loadItems(this.page);
-        }
-
-        this.unwatchList = API.watchList(this.type, (ids) => {
-            // update store list and type
-            this.list = ids || [];
-            // fetch items
-            this.fetchPageItems();
-        });
-    },
-
-    watch: {
-        page(to, from) {
-            this.loadItems(to, from);
-        }
-    },
-    methods: {
-        loadItems(to = this.page, from = -1) {
-            this.$bar.start();
-
-            API.fetchIdsByType(this.type)
-                .then(ids => {
-                    // update id list
-                    this.list = ids;
-                })
-                .then(() => this.fetchPageItems())
-                .then((items) => {
-                    if (this.page < 0 || this.page > this.maxPage) {
-                        this.$router.replace(`/${this.type}/1`)
-                        return
-                    }
-                    this.transition = from === -1
-                        ? null
-                        : to > from ? 'slide-left' : 'slide-right';
-                    this.displayedItems = items;
-                    this.displayedPage = to;
-                    this.$bar.finish();
-                })
-        },
-        fetchPageItems() {
-            const start = storiesPageSize * (this.page - 1);
-            const end = storiesPageSize * this.page - 1;
-            const ids = this.list.slice(start, end);
-
-            return API.fetchItems(ids);
-        },
-        beforeEnter() {
-            console.log('22222');
-        },
+    hasMore() {
+      return this.page < this.maxPage;
     }
-}
+  },
+
+  beforeMount() {
+    if (this.$root._isMounted) {
+      this.loadItems(this.page);
+    }
+
+    this.unwatchList = API.watchList(this.type, ids => {
+      // update store list and type
+      this.$store.commit("SET_LIST", { type: this.type, ids });
+      // fetch items
+      this.$store.dispach("ENSURE_ACTIVE_ITEMS").then(() => {
+        this.displayedItems = this.$store.getters.activeItems;
+      });
+    });
+  },
+
+  watch: {
+    page(to, from) {
+      this.loadItems(to, from);
+    }
+  },
+
+  beforeDestroy() {
+    this.unwatchList();
+  },
+
+  methods: {
+    loadItems(to = this.page, from = -1) {
+      this.$bar.start();
+
+      this.$store
+        .dispatch("FETCH_LIST_DATA", {
+          type: this.type
+        })
+        .then(() => {
+          if (this.page < 0 || this.page > this.maxPage) {
+            this.$router.replace(`/${this.type}/1`);
+            return;
+          }
+          this.transition =
+            from === -1 ? null : to > from ? "slide-left" : "slide-right";
+          this.displayedItems = this.$store.getters.activeItems;
+          this.$bar.finish();
+        });
+    }
+  }
+};
 </script>
 
 <style lang="less">
 .news-view {
-    padding-top: 45px;
+  padding-top: 45px;
 }
 
 .news-list-nav,
 .news-list {
-    background-color: #fff;
-    border-radius: 2px;
+  background-color: #fff;
+  border-radius: 2px;
 }
 
 .news-list-nav {
-    padding: 15px 30px;
-    position: fixed;
-    text-align: center;
-    top: 55px;
-    left: 0;
-    right: 0;
-    z-index: 998;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
-    a {
-        margin: 0 1em;
-    }
-    .disabled {
-        color: #ccc;
-    }
+  padding: 15px 30px;
+  position: fixed;
+  text-align: center;
+  top: 55px;
+  left: 0;
+  right: 0;
+  z-index: 998;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  a {
+    margin: 0 1em;
+  }
+  .disabled {
+    color: #ccc;
+  }
 }
 
 .news-list {
-    max-width: 800px;
-    margin: 30px auto;
-    position: relative;
-    transition: all .5s cubic-bezier(.55, 0, .1, 1);
-    ul {
-        list-style-type: none;
-        padding: 0;
-        margin: 0;
-    }
+  max-width: 800px;
+  margin: 30px auto;
+  position: relative;
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+  ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
 }
 
 .slide-left-enter,
 .slide-right-leave-to {
-    opacity: 0;
-    transform: translate(30px, 0);
+  opacity: 0;
+  transform: translate(30px, 0);
 }
 
 .slide-left-leave-to,
 .slide-right-enter {
-    opacity: 0;
-    transform: translate(-30px, 0);
+  opacity: 0;
+  transform: translate(-30px, 0);
 }
 
 .item-move,
 .item-enter-active,
 .item-leave-active {
-    transition: all .5s cubic-bezier(.55, 0, .1, 1)
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
 }
 
 .item-enter {
-    opacity: 0;
-    transform: translate(30px, 0);
+  opacity: 0;
+  transform: translate(30px, 0);
 }
 
 .item-leave-active {
-    position: absolute;
-    opacity: 0;
-    transform: translate(30px, 0);
+  position: absolute;
+  opacity: 0;
+  transform: translate(30px, 0);
 }
 </style>
 

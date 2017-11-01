@@ -23,10 +23,12 @@
 </template>
 
 <script>
-import API from "../api";
-
 export default {
   name: "UserView",
+
+  asyncData({ store, route: { params: { id } } }) {
+    return store.dispatch("FETCH_USER", { id });
+  },
 
   beforeMount() {
     const id = this.params.id;
@@ -35,10 +37,10 @@ export default {
     });
   },
 
-  data() {
-    return {
-      user: null
-    };
+  computed: {
+    user() {
+      return this.$store.state.users[this.$route.params.id];
+    }
   },
 
   title() {

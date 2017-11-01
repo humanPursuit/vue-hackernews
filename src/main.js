@@ -5,7 +5,7 @@ import * as filters from './util/filters';
 import titleMixin from './util/title';
 
 import App from './App.vue';
-// import { createStore } from './store'
+import { createStore } from './store'
 import { createRouter } from './router'
 
 // register all Global filters
@@ -16,11 +16,12 @@ Object.keys(filters).forEach(key => {
 Vue.mixin(titleMixin);
 
 function createApp() {
-    // const store = createStore();
+    const store = createStore();
     const router = createRouter();
 
     const app = new Vue({
         router,
+        store,
         render: h => h(App),
     });
 

@@ -29,28 +29,13 @@
 import Spinner from "../components/Spinner.vue";
 import Comment from "../components/Comment.vue";
 
-import * as API from "../api";
-
 const fetchComments = (store, item, updateFn) => {
   if (item && item.kids) {
-    const now = Date.now();
-    const ids = item.kids.filter(id => {
-      const _item = store[id];
-      if (!_item) return true;
-      if (now - _item.__lastUpdated > 1000 * 60 * 3) return true;
-      return false;
-    });
-    if (ids.length) {
-      return API.fetchItems(item.kids)
-        .then(items => {
-          items.forEach(item => {
-            updateFn(item);
-          });
-        })
-        .then(() => Promise.all(item.kids.map(id => fetchComments(store, id))));
-    } else {
-      return Promise.resolve();
-    }
+    return store
+      .dispatch("FETCH_ITEMS", {
+        ids: item.kids
+      })
+      .then(() => Promise.all(item.kids.map(id => fetchComments(store, store.state.items[id]))));
   }
 };
 
@@ -62,6 +47,10 @@ export default {
     Comment
   },
 
+  asyncData({ store, route: { params: { id } } }) {
+    return store.dispatch("FETCH_ITEMS", { ids: [id] });
+  },
+
   data() {
     return {
       items: {}, // local store
@@ -70,19 +59,12 @@ export default {
   },
 
   beforeMount() {
-    const id = this.$route.params.id;
-    API.fetchItem(id)
-      .then(item => {
-        this.$set(this.items, item.id, item);
-      })
-      .then(() => {
-        this.fetchComments();
-      });
+    this.fetchComments();
   },
 
   computed: {
     item() {
-      return this.items[this.$route.params.id];
+      return this.$store.state.items[this.$route.params.id];
     }
   },
 
@@ -96,9 +78,7 @@ export default {
 
       this.loading = true;
 
-      fetchComments(this.items, this.item, item => {
-        this.$set(this.items, item.id, item);
-      }).then(() => {
+      fetchComments(this.$store, this.item).then(() => {
         this.loading = false;
       });
     }

@@ -44,8 +44,8 @@ export default {
       return Number(this.$route.params.page) || 1;
     },
     maxPage() {
-      const { itemPerPage, lists } = this.$store.state;
-      return Math.ceil(lists[this.type] / itemPerPage);
+      const { itemsPerPage, lists } = this.$store.state;
+      return Math.ceil(lists[this.type].length / itemsPerPage);
     },
     hasMore() {
       return this.page < this.maxPage;
@@ -61,7 +61,7 @@ export default {
       // update store list and type
       this.$store.commit("SET_LIST", { type: this.type, ids });
       // fetch items
-      this.$store.dispach("ENSURE_ACTIVE_ITEMS").then(() => {
+      this.$store.dispatch("ENSURE_ACTIVE_ITEMS").then(() => {
         this.displayedItems = this.$store.getters.activeItems;
       });
     });

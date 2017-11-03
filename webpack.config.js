@@ -15,7 +15,8 @@ module.exports = {
     },
     resolve: {
         alias: {
-            'create-api': './create-api-client.js'
+            'create-api': './create-api-client.js',
+            'public': path.resolve(__dirname, 'public'),
         }
     },
     devtool: isProd ? false : 'source-map',

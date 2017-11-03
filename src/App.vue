@@ -4,7 +4,7 @@
         <header class="header">
             <nav class="inner">
                 <router-link to='/' exact>
-                    <img src="https://news.ycombinator.com/y18.gif">
+                    <img class="logo" src="~public/logo-48.png" alt="logo">
                 </router-link>
                 <router-link to="/top">Top</router-link>
                 <router-link to="/new">New</router-link>

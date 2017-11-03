@@ -55,7 +55,9 @@ Vue.mixin({
 
 const { app, router, store } = createApp();
 
-router.onReady(() => {
+// wait until router has resolved all async before hooks
+// and async components...
+// router.onReady(() => {
     // add router hook for handling asyncData.
     // doing it after inital route is resolved so that we don't double-fetch the data that we already have
     router.beforeResolve((to, from, next) => {
@@ -80,6 +82,6 @@ router.onReady(() => {
     });
 
     app.$mount('#app');
-})
+// })
 
 
